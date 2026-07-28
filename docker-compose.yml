@@ -14,7 +14,7 @@ services:
         condition: service_healthy
 
   nginx:
-    image: baistepan/library:${IMAGE_TAG:-latest}
+    build: ./nginx
     ports:
       - "82:80"
     volumes:
@@ -33,7 +33,7 @@ services:
       - db
 
   beat:
-    build: .
+    image: baistepan/library:${IMAGE_TAG:-latest}
     command: celery -A config beat -l info
     env_file:
       - .env
