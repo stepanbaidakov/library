@@ -1,11 +1,14 @@
-from library.models import Borrow
-from library.serializers import BorrowSerializer
-from rest_framework import serializers
-from .models import CustomUser
 from django.contrib.auth import get_user_model
 from django.contrib.auth.password_validation import validate_password
-from django.utils.http import urlsafe_base64_decode
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
+from django.utils.http import urlsafe_base64_decode
+
+from rest_framework import serializers
+
+from library.models import Borrow
+from library.serializers import BorrowSerializer
+
+from .models import CustomUser
 
 User = get_user_model()
 
@@ -43,10 +46,7 @@ class PasswordResetSerializer(serializers.Serializer):
 
 class PasswordResetConfirmSerializer(serializers.Serializer):
 
-    new_password = serializers.CharField(
-        write_only=True,
-        validators=[validate_password]
-    )
+    new_password = serializers.CharField(write_only=True, validators=[validate_password])
 
     def validate(self, attrs):
         uid = self.context["uid"]

@@ -18,7 +18,7 @@ def send_remind_email():
             send_mail(
                 subject="Просрочивание возврата книги",
                 message=f"Срок аренды книги {borrow.book.title} - {borrow.book.author} просрочен. "
-                        f"Просим вернуть ее как можно скорее",
+                f"Просим вернуть ее как можно скорее",
                 from_email=DEFAULT_FROM_EMAIL,
                 recipient_list=[borrow.user.email],
             )

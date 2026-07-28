@@ -1,30 +1,26 @@
-from rest_framework import viewsets
-from rest_framework.permissions import IsAuthenticated
-
-from library.permissions import IsModerator
-from users.models import CustomUser
-from users.serializers import UserSerializer, UserCreateSerializer
-from .permissions import IsUser
 from django.contrib.auth import get_user_model
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
-
-from django.core.mail import send_mail
-
 from django.urls import reverse
-
 from django.utils.encoding import force_bytes
 from django.utils.http import (
     urlsafe_base64_encode,
 )
 
-from rest_framework import status
+from rest_framework import status, viewsets
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from library.permissions import IsModerator
+from users.models import CustomUser
+from users.serializers import UserCreateSerializer, UserSerializer
+
+from .permissions import IsUser
 from .serializers import (
-    PasswordResetSerializer,
     PasswordResetConfirmSerializer,
+    PasswordResetSerializer,
 )
+from .tasks import send_password_reset_email
 
 # Create your views here.
 
@@ -74,17 +70,7 @@ class PasswordResetView(APIView):
         reset_url = request.build_absolute_uri(
             reverse("users:password-reset-confirm", kwargs={"uidb64": uid, "token": token})
         )
-        send_mail(
-            subject="Восстановление пароля",
-            message=f"""
-Здравствуйте.
-Для восстановления пароля перейдите по ссылке
-{reset_url}
-Если это были не Вы — проигнорируйте письмо.
-""",
-            from_email=None,
-            recipient_list=[email],
-        )
+        send_password_reset_email.delay(email, reset_url)
         return Response(
             {"detail": "Письмо отправлено"},
             status=status.HTTP_200_OK,
@@ -106,6 +92,4 @@ class PasswordResetConfirmView(APIView):
         user.set_password(serializer.validated_data["new_password"])
         user.save()
 
-        return Response(
-            {"detail": "Пароль успешно изменён"}
-        )
+        return Response({"detail": "Пароль успешно изменён"})
