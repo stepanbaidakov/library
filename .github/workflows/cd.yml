@@ -37,10 +37,9 @@ jobs:
         run: |
           ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SERVER_IP }} << 'EOF'
             set -e 
-            mkdir -p /var/www/habit-tracker
-            cd /var/www/habit-tracker
+            cd /var/www/library
             export IMAGE_TAG=${{ github.sha }}
-            docker compose pull web worker beat 
+            docker compose pull 
             docker compose up -d web worker beat
             docker compose up -d --build nginx
             docker compose exec -T web python manage.py migrate
