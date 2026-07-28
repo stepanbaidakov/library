@@ -1,11 +1,13 @@
-from django.contrib.auth import get_user_model
-
-from rest_framework import serializers
-
 from library.models import Borrow
 from library.serializers import BorrowSerializer
-
+from rest_framework import serializers
 from .models import CustomUser
+from django.contrib.auth import get_user_model
+from django.contrib.auth.password_validation import validate_password
+from django.utils.http import urlsafe_base64_decode
+from django.contrib.auth.tokens import PasswordResetTokenGenerator
+
+User = get_user_model()
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -14,38 +16,50 @@ class UserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = CustomUser
-        fields = ["username", "email", "password", "full_name", "phone", "borrows", "borrows_count"]
+        fields = ["id", "username", "email", "full_name", "phone", "borrows", "borrows_count"]
         read_only_fields = ("id",)
-        extra_kwargs = {
-            "password": {"write_only": True},
-        }
 
     def get_borrows_count(self, obj):
         return Borrow.objects.filter(user=obj).count()
+
+
+class UserCreateSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = CustomUser
+        fields = ["id", "username", "email", "password", "full_name", "phone"]
+        extra_kwargs = {
+            "password": {"write_only": True},
+        }
 
     def create(self, validated_data):
         User = get_user_model()
         return User.objects.create_user(**validated_data)
 
-    def update(self, instance, validated_data):
-        password = validated_data.pop("password", None)
 
-        for attr, value in validated_data.items():
-            setattr(instance, attr, value)
+class PasswordResetSerializer(serializers.Serializer):
+    email = serializers.EmailField()
 
-        if password:
-            instance.set_password(password)
 
-        instance.save()
-        return instance
+class PasswordResetConfirmSerializer(serializers.Serializer):
+
+    new_password = serializers.CharField(
+        write_only=True,
+        validators=[validate_password]
+    )
 
     def validate(self, attrs):
-        username = attrs.get("username", self.instance.username if self.instance else None)
-        email = attrs.get("email", self.instance.username if self.instance else None)
-        qs = CustomUser.objects.filter(username__iexact=username, email__iexact=email)
+        uid = self.context["uid"]
+        token = self.context["token"]
 
-        if self.instance:
-            qs = qs.exclude(pk=self.instance.pk)
-        if qs.exists():
-            raise serializers.ValidationError("Пользователь с таким именем уже существует")
+        try:
+            user_id = urlsafe_base64_decode(uid).decode()
+            user = User.objects.get(pk=user_id)
+        except (TypeError, ValueError, OverflowError, User.DoesNotExist):
+            raise serializers.ValidationError("Пользователь не найден.")
+
+        if not PasswordResetTokenGenerator().check_token(user, token):
+            raise serializers.ValidationError("Токен недействителен.")
+
+        attrs["user"] = user
         return attrs

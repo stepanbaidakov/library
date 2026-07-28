@@ -1,6 +1,6 @@
 services:
   web:
-    build: .
+    image: baistepan/library:${IMAGE_TAG:-latest}
     command: sh -c "gunicorn config.wsgi:application --bind 0.0.0.0:8000"
     volumes:
       - static_volume:/app/staticfiles
@@ -14,7 +14,7 @@ services:
         condition: service_healthy
 
   nginx:
-    build: ./nginx
+    image: baistepan/library:${IMAGE_TAG:-latest}
     ports:
       - "82:80"
     volumes:
@@ -24,7 +24,7 @@ services:
       - web
 
   worker:
-    build: .
+    image: baistepan/library:${IMAGE_TAG:-latest}
     command: celery -A config worker -l info
     env_file:
       - .env
@@ -64,17 +64,6 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
-
-#  bot:
-#    image: baistepan/habit-tracker:${IMAGE_TAG:-latest}
-#    command: python bot.py
-#    env_file:
-#      - .env
-#    depends_on:
-#      - db
-#      - redis
-#      - worker
-#      - beat
 
 volumes:
   postgres_data:
