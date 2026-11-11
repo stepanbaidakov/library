@@ -62,12 +62,12 @@ class Borrow(models.Model):
     @property
     def status(self):
         if self.returned:
-            return "Возвращена"
+            return "Returned"
 
         if timezone.localdate() > self.due_date:
-            return "Просрочена"
+            return "Overdue"
 
-        return "Выдана"
+        return "Issued"
 
     def return_book(self):
         if not self.returned:

@@ -56,10 +56,10 @@ class PasswordResetConfirmSerializer(serializers.Serializer):
             user_id = urlsafe_base64_decode(uid).decode()
             user = User.objects.get(pk=user_id)
         except (TypeError, ValueError, OverflowError, User.DoesNotExist):
-            raise serializers.ValidationError("Пользователь не найден.")
+            raise serializers.ValidationError("User not found.")
 
         if not PasswordResetTokenGenerator().check_token(user, token):
-            raise serializers.ValidationError("Токен недействителен.")
+            raise serializers.ValidationError("Token is invalid.")
 
         attrs["user"] = user
         return attrs

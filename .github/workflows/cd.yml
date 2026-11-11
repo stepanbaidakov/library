@@ -16,11 +16,17 @@ jobs:
       - name: Log in to Docker Hub
         run: echo ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }} | docker login -u ${{ secrets.DOCKER_HUB_USERNAME }} --password-stdin
 
-      - name: Build Docker image
+      - name: Build Django Docker image
         run: docker build -t ${{ secrets.DOCKER_HUB_USERNAME }}/library:${{ github.sha }} .
 
-      - name: Push Docker image to Docker Hub
+      - name: Push Django Docker image to Docker Hub
         run: docker push ${{ secrets.DOCKER_HUB_USERNAME }}/library:${{ github.sha }}
+
+      - name: Build Nginx Docker image
+        run: docker build -t ${{ secrets.DOCKER_HUB_USERNAME }}/nginx-library:${{ github.sha }} ./nginx
+
+      - name: Push Nginx Docker image to Docker Hub
+        run: docker push ${{ secrets.DOCKER_HUB_USERNAME }}/nginx-library:${{ github.sha }}
 
   deploy:
     runs-on: ubuntu-latest
@@ -36,12 +42,12 @@ jobs:
         run: |
           ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SERVER_IP }} << 'EOF'
             set -e 
+            mkdir -p /var/www/library
             cd /var/www/library
             export IMAGE_TAG=${{ github.sha }}
-            docker compose pull web worker beat
-            docker compose up -d web worker beat
-            docker compose up -d --build nginx
-            docker compose exec -T web python manage.py migrate
-            docker compose exec -T web python manage.py collectstatic --noinput
+            docker compose pull web worker beat bot nginx
+            docker compose run --rm web python manage.py migrate
+            docker compose run --rm web python manage.py collectstatic --noinput
+            docker compose up -d web worker beat bot nginx
             docker image prune -f
           EOF

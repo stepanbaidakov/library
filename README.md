@@ -1,194 +1,301 @@
-# Библиотечный API
+# Library API
 
-## Описание:
+## Description
 
-REST API-сервер для управления библиотекой.
+A Django REST Framework API for managing a library, including books, authors, users, and book loans.
 
-Проект разработан на Django REST Framework и предоставляет возможности для управления книгами, авторами и пользователями, а также отслеживания выдачи и возврата книг.
+The application allows users to manage library resources, track book borrowing and returns, check book availability, and receive automated reminders.
 
-Основной функционал:
-- регистрация и авторизация пользователей через JWT токены;
-- управление книгами;
-- управление авторами;
-- управление пользователями;
-- выдача книг пользователям;
-- отслеживание статуса возврата книг;
-- проверка доступности книг;
-- автоматическая отправка напоминаний пользователям;
-- документация API по стандарту OpenAPI.
+## Features
 
-## Локальная установка и запуск приложения
+- **JWT Authentication** — user registration and authentication using JSON Web Tokens.
+- **Book Management** — manage books available in the library.
+- **Author Management** — manage author information.
+- **User Management** — manage user accounts.
+- **Book Borrowing** — track books borrowed by users.
+- **Return Tracking** — monitor the return status of borrowed books.
+- **Book Availability** — check whether books are available for borrowing.
+- **Automated Reminders** — send reminders to users regarding borrowed books.
+- **API Documentation** — interactive API documentation based on the OpenAPI standard.
 
-### 1. Клонирование проекта
+## Tech Stack
+
+- Python
+- Django
+- Django REST Framework
+- JWT Authentication
+- OpenAPI
+- Docker
+- Docker Compose
+- Celery beat/worker
+- GitHub Actions
+
+## Local Installation and Setup
+
+### 1. Clone the repository
 
 ```bash
 git clone https://github.com/stepanbaidakov/library.git
 ```
 
+### 2. Navigate to the project directory
+
 ```bash
-git clone <repository_url>
 cd library
 ```
 
-### 2. Создание виртуального окружения
+### 3. Create a virtual environment
 
 ```bash
 python -m venv venv
 ```
 
-### Linux / macOS
+### 4. Activate the virtual environment
+
+**Linux/macOS:**
 
 ```bash
 source venv/bin/activate
 ```
 
-### Windows
+**Windows:**
 
 ```bash
 venv\Scripts\activate
 ```
 
-### 3. Установка зависимостей
+### 5. Install dependencies
 
 ```bash
 pip install -r requirements.txt
 ```
 
-### 4. Создание файла `.env`
+### 6. Configure environment variables
 
-Создайте файл `.env` по примеру `.env.sample`.
+Create a `.env` file based on the `.env.sample` template.
 
-Пример:
+```bash
+cp .env.sample .env
+```
 
-```env
+On Windows, copy the template manually if the `cp` command is unavailable.
+
+Configure the required environment variables, including the Django secret key, database credentials, Redis connection settings and Email backend and other config settings.
+
+Example:
+
+```dotenv
 SECRET_KEY=your_secret_key
 DEBUG=True
 
-POSTGRES_DB=library
-POSTGRES_USER=postgres
-POSTGRES_PASSWORD=password
-POSTGRES_HOST=localhost
-POSTGRES_PORT=5432
+DB_NAME=library
+DB_USER=postgres
+DB_PASSWORD=password
+DB_HOST=localhost
+DB_PORT=5432
 
-REDIS_HOST=localhost
-REDIS_PORT=6379
+EMAIL_HOST_USER=
+EMAIL_HOST_PASSWORD=
+
+BACKEND=
+LOCATION=
+
+CELERY_BROKER_URL=
+CELERY_RESULT_BACKEND=
+DOCKER_HUB_USERNAME=
 ```
 
-### 5. Выполнение миграций
+Use secure values and set `DEBUG=False` in production.
+
+### 7. Apply database migrations
 
 ```bash
 python manage.py migrate
 ```
 
-### 6. Создание администратора
+### 8. Create a superuser
 
 ```bash
 python manage.py createsuperuser
 ```
 
-### 7. Запуск сервера
+### 9. Start the development server
 
 ```bash
 python manage.py runserver
 ```
 
----
+The development server will be available at:
 
-## Запуск через Docker
+```text
+http://127.0.0.1:8000/
+```
 
-### Создание файла `.env`
+## Running with Docker
 
-Создайте файл `.env` по шаблону `.env.sample`.
+### 1. Configure environment variables
 
-### Сборка и запуск
+Create a `.env` file based on `.env.sample` and configure the required settings for the application and its services.
+
+### 2. Pull  and start the application
 
 ```bash
-docker compose up --build
+docker compose pull web worker beat nginx
+docker compose run --rm web python manage.py migrate
+docker compose run --rm web python manage.py collectstatic --noinput
+docker compose up -d web worker beat nginx
 ```
 
-### Запуск в фоне
+### 5. Check the running containers
 
 ```bash
-docker compose up -d
+docker compose ps
 ```
 
-### Выполнение миграций
+View application logs if necessary:
 
 ```bash
-docker compose exec web python manage.py migrate
+docker compose logs -f
 ```
 
-### Создание суперпользователя
+To view logs for a specific service:
 
 ```bash
-docker compose exec web python manage.py createsuperuser
+docker compose logs -f web
 ```
 
-### Сбор статических файлов
+### 6. Stop the application
 
 ```bash
-docker compose exec web python manage.py collectstatic
+docker compose down
 ```
 
----
+This stops and removes the Compose containers and network without automatically deleting named volumes.
 
-##  CI/CD
+## Usage
 
-Workflow расположен в каталоге:
+### User Registration and Authentication
 
-```
+Users can register and authenticate using the API endpoints provided by the application. Authentication is based on JWT tokens.
+
+Authenticated requests must include the appropriate access token according to the API's authentication configuration.
+
+### Managing Books and Authors
+
+The API provides endpoints for managing books and authors. Available operations depend on the configured views, serializers, and permissions.
+
+### Managing Users
+
+User management functionality is available through the API, subject to the application's authentication and permission rules.
+
+### Borrowing and Returning Books
+
+The application tracks book loans and their return status, allowing clients to monitor borrowed books and check availability.
+
+### Automated Reminders
+
+The application supports automated reminders for users. Reminder delivery requires the relevant Redis connection and background task configuration used by the project.
+
+## API Documentation
+
+The API documentation follows the OpenAPI standard.
+
+Depending on the application's URL configuration, interactive documentation may be available through Swagger UI and ReDoc.
+
+- **Swagger UI:** `/swagger/`
+- **ReDoc:** `/redoc/`
+
+These are example paths. Use the actual documentation URLs configured in the project's Django URL configuration.
+
+## CI/CD
+
+The GitHub Actions workflows are located in:
+
+```text
 .github/workflows/
 ```
 
-### Необходимые GitHub Secrets
+### GitHub Actions Secrets
 
-Добавьте в:
+Navigate to:
 
+**Settings → Secrets and variables → Actions**
+
+Add the secrets required by the configured workflow:
+
+```text
+DOCKER_HUB_ACCESS_TOKEN
+DOCKER_HUB_USERNAME
+SERVER_IP
+SERVER_USER
+SERVER_SSH_KEY
+SECRET_KEY
 ```
-Settings → Secrets and variables → Actions
-```
 
-следующие секреты:
+### Deployment Workflow
 
-- SERVER_HOST
-- SERVER_USER
-- SERVER_SSH_KEY
+When changes are pushed to the configured branch, the workflow may perform the following steps, depending on its implementation:
 
-### Что происходит при Push в основную ветку
+1. Check out the source code.
+2. Install dependencies.
+3. Run automated tests.
+4. Build Docker images.
+5. Push images to a container registry.
+6. Connect to the deployment server via SSH.
+7. Pull updated images and restart the application.
 
-- Получение актуального кода
-- Установка зависимостей
-- Запуск тестов
-- Сборка Docker-образов
-- Подключение к серверу по SSH
-- Обновление приложения
-- Перезапуск контейнеров
-- Автоматический деплой
+## Deployment
 
----
+The deployment server must have the following software installed:
 
-## Деплой на сервер
+- Docker Engine
+- Docker Compose plugin
 
-На сервере должны быть установлены:
-
-- Git
-- Docker
-- Docker Compose
-
-### Проверка установки:
+Verify the installation:
 
 ```bash
-git --version
 docker --version
 docker compose version
 ```
 
-### Создание файла `.env`:
+### 1. Copy the Docker Compose file
+
+Copy `docker-compose.yml` to the deployment server.
+
+### 2. Configure environment variables
+
+Create a `.env` file containing the production environment variables required by the application and Docker Compose.
 
 ```bash
 nano .env
 ```
 
-После отправки изменений в основную ветку приложение будет автоматически задеплоено.
+Configure database credentials, Django settings, service connection details, and image tags as required by the deployment.
 
----
+Do not commit production secrets to the repository.
+
+### 3. Pull and start the application
+
+Deploy the images with:
+
+```bash
+docker compose pull
+docker compose up -d
+```
+
+
+### 4. Verify the deployment
+
+Check container status:
+
+```bash
+docker compose ps
+```
+
+Inspect logs:
+
+```bash
+docker compose logs -f
+```
+
+After changes are pushed to the configured branch, the CI/CD workflow can deploy updates automatically.
