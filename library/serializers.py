@@ -23,7 +23,7 @@ class BookSerializer(serializers.ModelSerializer):
 
     def validate_year(self, value):
         if value > timezone.now().year:
-            raise serializers.ValidationError({"year": "Год издания не может быть в будущем"})
+            raise serializers.ValidationError({"year": "Publishing year can't be in the future."})
         return value
 
     def validate(self, attrs):
@@ -35,7 +35,7 @@ class BookSerializer(serializers.ModelSerializer):
         if self.instance:
             qs = qs.exclude(pk=self.instance.pk)
         if qs.exists():
-            raise serializers.ValidationError("У данного издания уже существует данная книга")
+            raise serializers.ValidationError({"book": "A book by this publisher already exists."})
         return attrs
 
 
@@ -53,7 +53,7 @@ class AuthorSerializer(serializers.ModelSerializer):
 
     def validate_birth_date(self, value):
         if value > timezone.now().date():
-            raise serializers.ValidationError({"birth_date": "Дата рождения автора не может быть в будущем"})
+            raise serializers.ValidationError({"birth_date": "Author's birthday date can't be in the future."})
         return value
 
     def validate(self, attrs):
@@ -64,7 +64,7 @@ class AuthorSerializer(serializers.ModelSerializer):
         if self.instance:
             qs = qs.exclude(pk=self.instance.pk)
         if qs.exists():
-            raise serializers.ValidationError("Такой автор уже существует")
+            raise serializers.ValidationError({"author": "This author already exists."})
         return attrs
 
 
@@ -85,5 +85,5 @@ class BorrowSerializer(serializers.ModelSerializer):
         if self.instance:
             qs = qs.exclude(pk=self.instance.pk)
         if qs.exists():
-            raise serializers.ValidationError({"book": "Данная книга уже арендована Вами"})
+            raise serializers.ValidationError({"book": "This book is already in borrow by you."})
         return attrs

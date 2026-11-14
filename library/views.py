@@ -58,7 +58,7 @@ class BorrowViewSet(viewsets.ModelViewSet):
     def return_book(self, request, pk=None):
         borrow = self.get_object()
         borrow.return_book()
-        return Response({"detail": "Книга возвращена."})
+        return Response({"detail": "Book returned."})
 
     def get_permissions(self):
         if self.action == "retrieve":

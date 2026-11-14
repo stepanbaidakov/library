@@ -62,7 +62,7 @@ class PasswordResetView(APIView):
 
         except User.DoesNotExist:
             return Response(
-                {"detail": "Пользователь не найден"},
+                {"detail": "User not found."},
                 status=status.HTTP_404_NOT_FOUND,
             )
         uid = urlsafe_base64_encode(force_bytes(user.pk))
@@ -72,7 +72,7 @@ class PasswordResetView(APIView):
         )
         send_password_reset_email.delay(email, reset_url)
         return Response(
-            {"detail": "Письмо отправлено"},
+            {"detail": "Email sent."},
             status=status.HTTP_200_OK,
         )
 
@@ -92,4 +92,4 @@ class PasswordResetConfirmView(APIView):
         user.set_password(serializer.validated_data["new_password"])
         user.save()
 
-        return Response({"detail": "Пароль успешно изменён"})
+        return Response({"detail": "Password successfully changed."})

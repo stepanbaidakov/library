@@ -7,11 +7,11 @@ class BorrowAvailableValidator:
     def __call__(self, attrs):
         book = attrs.get("book")
         if book and not book.is_available:
-            raise ValidationError({"book": "Нет свободных книг для аренды"})
+            raise ValidationError({"book": "No book available for borrowing."})
 
 
 class DueDateValidator:
     def __call__(self, attrs):
         due_date = attrs.get("due_date")
         if due_date and due_date < timezone.localdate():
-            raise ValidationError({"due_date": "Нельзя арендовать книгу на прошедшее время"})
+            raise ValidationError({"due_date": "Book can't be borrowed for past time."})

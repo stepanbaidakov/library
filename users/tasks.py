@@ -7,15 +7,14 @@ from celery import shared_task
 def send_password_reset_email(email, reset_url):
 
     send_mail(
-        subject="Восстановление пароля",
+        subject="Password reset",
         message=f"""
-Здравствуйте.
 
-Для восстановления пароля перейдите по ссылке:
+Please go to the following link to reset your password:
 
 {reset_url}
 
-Если это были не Вы — проигнорируйте письмо.
+If it wasn't you, you can ignore this email.
 """,
         from_email=None,
         recipient_list=[email],
